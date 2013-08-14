@@ -74,6 +74,8 @@ func main() {
 	switch *reporter {
 	case "text":
 		rep = NewTextReporter(len(responses))
+	case "graphical":
+		rep = NewGraphicalReporter()
 	default:
 		log.Println("reporter provided is not supported. using text")
 		rep = NewTextReporter(len(responses))

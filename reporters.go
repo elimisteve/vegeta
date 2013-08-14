@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"fmt"
 	"io"
 	"time"
@@ -70,6 +71,52 @@ func (r *TextReporter) Report(out io.Writer) error {
 	buf += fmt.Sprintln("\nError set:")
 	for err, _ := range errors {
 		buf += fmt.Sprintln(err)
+	}
+	_, err := out.Write([]byte(buf))
+	return err
+}
+
+type GraphicalReporter struct {
+	responses *list.List
+}
+
+// NewGraphicalReporter initializes a GraphicalReporter with n responses
+func NewGraphicalReporter() *GraphicalReporter {
+	return &GraphicalReporter{responses: list.New()}
+}
+
+// Add inserts response to be used in the report, sorted by timestamp.
+func (r *GraphicalReporter) Add(res *Response) {
+	// Empty list
+	if r.responses.Len() == 0 {
+		r.responses.PushFront(res)
+		return
+	}
+	// Happened after all others
+	if last := r.responses.Back().Value.(*Response); last.timestamp.Before(res.timestamp) {
+		r.responses.PushBack(res)
+		return
+	}
+	// Happened before all others
+	if first := r.responses.Front().Value.(*Response); first.timestamp.After(res.timestamp) {
+		r.responses.PushFront(res)
+		return
+	}
+	// O(n) worst case insertion time
+	for e := r.responses.Front(); e != nil; e = e.Next() {
+		needle := e.Value.(*Response)
+		if res.timestamp.Before(needle.timestamp) {
+			r.responses.InsertBefore(res, e)
+			return
+		}
+	}
+}
+
+func (r *GraphicalReporter) Report(out io.Writer) error {
+	buf := ""
+	for e := r.responses.Front(); e != nil; e = e.Next() {
+		r := e.Value.(*Response)
+		buf += fmt.Sprintln(r.timestamp)
 	}
 	_, err := out.Write([]byte(buf))
 	return err
