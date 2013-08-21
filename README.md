@@ -93,7 +93,7 @@ Plots the request timings in SVG format.
 ![plot](https://dl.dropboxusercontent.com/u/83217940/plot.svg)
 
 #### -targets
-Specifies the attack targets in a line sepated file. The format should
+Specifies the attack targets in a line-separated file. The format should
 be as follows:
 ```
 GET http://goku:9090/path/to/dragon?item=balls
